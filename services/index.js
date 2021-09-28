@@ -1,14 +1,51 @@
 
 const fs = require('fs');
 
-const crane = require("../model/crane")
-const craneList = []
+const device = require("../model/device")
+const deviceList = []
+
+function getUsedCranes() {
+
+}
+const allocateCraneId = async () => {
+    try {
+        const cranesJson = fs.readFileSync("data/cranes.json")
+        const allCranes = JSON.parse(cranesJson)
+        if (fs.existsSync("data/devices.json")) {
+            const allDevices = fs.readFileSync("data/devices.json") 
+            const usedCranes = JSON.parse(allDevices).map(device => { return device.crane_id });
+            const availableCranesId =  allCranes.filter(crane => !usedCranes.includes(crane))
+            console.log(availableCranesId.length>0)
+            if(  availableCranesId.length>0)
+                return availableCranesId[0]
+            else
+                return undefined
+     
+        }
+        else {
+            return allCranes[0]
+        }
+
+    }
+    catch (e) {
+        throw new Error(e.message)
+    }
+
+}
 const createDevice = async (data) => {
     try {
-        const newCrange = new crane(data.body["id"], data.body["crane_id"], data.body["description"], data.body["serial_number"])
+        crane_id = await allocateCraneId()
+        console.log(crane_id)
+        const { id, description, serial_number } = data.body;
+        if (id != undefined && crane_id != undefined && description != undefined && serial_number != undefined && crane_id != undefined) {
+            const newDevice = new device(id, crane_id, description, serial_number)
+            deviceList.push(newDevice)
 
-        craneList.push(newCrange)
-        await _saveCranesToFile();
+            await _saveDevicesToFile();
+            return true
+        }
+        else
+            return false
     } catch (e) {
         throw new Error(e.message)
     }
@@ -16,14 +53,15 @@ const createDevice = async (data) => {
 
 const getCranes = async () => {
     try {
-        return await craneList.filter(crane => crane.deleted == false).map(x=> {
+        return await deviceList.filter(crane => crane.deleted == false).map(x => {
             return {
                 "id": x.id,
                 "crane_id": x.crane_id,
                 "serial_number": x.serial_number,
                 "description": x.description
 
-        }})
+            }
+        })
     } catch (e) {
         throw new Error(e.message)
     }
@@ -31,7 +69,7 @@ const getCranes = async () => {
 
 const getDevice = async (device_id) => {
     try {
-        return await craneList.find(element => element.id == device_id)
+        return await deviceList.find(element => element.id == device_id)
     } catch (e) {
         throw new Error(e.message)
     }
@@ -39,29 +77,30 @@ const getDevice = async (device_id) => {
 
 const setDeleteDevice = async (device_id) => {
     try {
-        deviceIndex = craneList.findIndex(element => element.id == device_id)
+        deviceIndex = deviceList.findIndex(element => element.id == device_id)
         if (deviceIndex == -1)
             return false
         else {
-            craneList[deviceIndex]["deleted"] = true
+            deviceList[deviceIndex]["deleted"] = true
+            await _saveDevicesToFile();
             return true
         }
-           
+
     } catch (e) {
         throw new Error(e.message)
     }
 }
 
- const modifyDevice  = async (device_id, newProperties) => {
+const modifyDevice = async (device_id, newProperties) => {
     try {
-        deviceIndex = craneList.findIndex(element => element.id == device_id)
+        deviceIndex = deviceList.findIndex(element => element.id == device_id)
         if (deviceIndex != -1) {
             const { description, serial_number } = newProperties
             if (description != undefined)
-                craneList[deviceIndex]["description"] = description
+                deviceList[deviceIndex]["description"] = description
             if (serial_number != undefined)
-                craneList[deviceIndex]["serial_number"] = serial_number
-               await _saveCranesToFile();
+                deviceList[deviceIndex]["serial_number"] = serial_number
+            await _saveDevicesToFile();
             return true
         }
         else
@@ -72,9 +111,9 @@ const setDeleteDevice = async (device_id) => {
     }
 }
 
-function _saveCranesToFile() {
+function _saveDevicesToFile() {
     return new Promise((resolve, reject) => {
-        fs.writeFile('data/cranes.json', JSON.stringify(craneList, null, 2), (err) => {
+          fs.writeFile('data/devices.json', JSON.stringify(deviceList, null, 2), (err) => {
             if (err) return reject(err)
             resolve();
         })

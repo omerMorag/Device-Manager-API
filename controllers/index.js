@@ -1,24 +1,18 @@
 
-
-
-/*
- * call other imported services, or same service but different functions here if you need to
-*/
-
 const querystring = require('querystring');
 const deviceServices = require("../services")
+
 const showDevices = async (req, res, next) => {
     try {
         const devicesList = await deviceServices.getCranes()
-        res.send(devicesList);
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-
+        res.status(200).send(devicesList);
+    
     } catch (e) {
         console.log(e.message)
         res.sendStatus(500) && next(error)
     }
-
 }
+
 const showDevice = async (req, res, next) => {
     try {
         const device = await deviceServices.getDevice(req.params.id)
@@ -58,7 +52,6 @@ const deleteDevice = async (req, res, next) => {
 const modifyDevice = (req, res, next) => {
 
     try {
-        
         wasModified =  deviceServices.modifyDevice(req.params.id, req.query)
         if (wasModified) {
             res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -79,14 +72,18 @@ const createDevice = async (req, res, next) => {
         craneList = await deviceServices.getCranes()
         for (const element of craneList) {
             if (element.id == req.body["id"] || element.serial_number == req.body["serial_number"]) {
-                res.sendStatus(409).send('the device already exist')
+                res.sendStatus(409)
             }
         };
-        await deviceServices.createDevice(req)
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end("Device was created");
-
-
+        wasCreated = await deviceServices.createDevice(req)
+        
+        if(wasCreated){
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end("Device was created");
+        }
+        else{
+            res.sendStatus(400)
+        }
     } catch (e) {
         console.log(e.message)
         res.sendStatus(500) && next(error)
