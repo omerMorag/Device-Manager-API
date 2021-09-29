@@ -1,4 +1,3 @@
-
 const querystring = require('querystring');
 const deviceServices = require("../services/index.js")
 
@@ -6,7 +5,7 @@ const showDevices = async (req, res, next) => {
     try {
         const devicesList = await deviceServices.getDevices()
         res.status(200).send(devicesList);
-    
+
     } catch (e) {
         console.log(e.message)
         res.sendStatus(500) && next(error)
@@ -52,7 +51,7 @@ const deleteDevice = async (req, res, next) => {
 const modifyDevice = (req, res, next) => {
 
     try {
-        wasModified =  deviceServices.modifyDevice(req.params.id, req.query)
+        wasModified = deviceServices.modifyDevice(req.params.id, req.query)
         if (wasModified) {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end("Device was modified")
@@ -69,20 +68,20 @@ const modifyDevice = (req, res, next) => {
 
 const createDevice = async (req, res, next) => {
     try {
-      const craneList = await deviceServices.getCranes();
-        console.log(craneList);
-        for (const element of craneList) {
+        const devicesList = await deviceServices.getDevices();
+        console.log(devicesList);
+        for (const element of devicesList) {
             if (element.id == req.body["id"] || element.serial_number == req.body["serial_number"]) {
                 res.sendStatus(409)
             }
         };
         wasCreated = await deviceServices.createDevice(req)
-        
-        if(wasCreated){
+
+        if (wasCreated) {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end("Device was created");
         }
-        else{
+        else {
             res.sendStatus(400)
         }
     } catch (e) {

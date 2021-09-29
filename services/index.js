@@ -1,12 +1,11 @@
-
 const fs = require('fs');
 
 const device = require("../model/device")
 
-
+const deviceList = []
 const allocateCraneId = async () => {
     try {
-        const cranesJson = fs.readFileSync("../data/cranes.json")
+        const cranesJson = fs.readFileSync("data/cranes.json")
         const allCranes = JSON.parse(cranesJson)
         if (fs.existsSync("data/devices.json")) {
             const allDevices = fs.readFileSync("data/devices.json")
@@ -50,17 +49,20 @@ const createDevice = async (data) => {
 
 const getDevices = () => {
     try {
-        const deviceList = fs.readFileSync("../data/devices.json");
-        const allDevices = JSON.parse(deviceList)
-        return allDevices.filter(device => device.deleted === false).map(x => {
-            return {
-                "id": x.id,
-                "crane_id": x.crane_id,
-                "serial_number": x.serial_number,
-                "description": x.description
-
-            }
-        })
+        if (!fs.existsSync("../data/devices.json"))
+            return []
+        else {
+            const deviceList = fs.readFileSync("../data/devices.json");
+            const allDevices = JSON.parse(deviceList)
+            return allDevices.filter(device => device.deleted === false).map(x => {
+                return {
+                    "id": x.id,
+                    "crane_id": x.crane_id,
+                    "serial_number": x.serial_number,
+                    "description": x.description
+                }
+            })
+        }
     } catch (e) {
         throw new Error(e.message)
     }
