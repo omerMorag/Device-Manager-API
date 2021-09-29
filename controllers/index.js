@@ -1,10 +1,10 @@
 
 const querystring = require('querystring');
-const deviceServices = require("../services")
+const deviceServices = require("../services/index.js")
 
 const showDevices = async (req, res, next) => {
     try {
-        const devicesList = await deviceServices.getCranes()
+        const devicesList = await deviceServices.getDevices()
         res.status(200).send(devicesList);
     
     } catch (e) {
@@ -69,7 +69,8 @@ const modifyDevice = (req, res, next) => {
 
 const createDevice = async (req, res, next) => {
     try {
-        craneList = await deviceServices.getCranes()
+      const craneList = await deviceServices.getCranes();
+        console.log(craneList);
         for (const element of craneList) {
             if (element.id == req.body["id"] || element.serial_number == req.body["serial_number"]) {
                 res.sendStatus(409)

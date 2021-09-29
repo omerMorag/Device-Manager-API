@@ -2,25 +2,22 @@
 const fs = require('fs');
 
 const device = require("../model/device")
-const deviceList = []
 
-function getUsedCranes() {
 
-}
 const allocateCraneId = async () => {
     try {
-        const cranesJson = fs.readFileSync("data/cranes.json")
+        const cranesJson = fs.readFileSync("../data/cranes.json")
         const allCranes = JSON.parse(cranesJson)
         if (fs.existsSync("data/devices.json")) {
-            const allDevices = fs.readFileSync("data/devices.json") 
+            const allDevices = fs.readFileSync("data/devices.json")
             const usedCranes = JSON.parse(allDevices).map(device => { return device.crane_id });
-            const availableCranesId =  allCranes.filter(crane => !usedCranes.includes(crane))
-            console.log(availableCranesId.length>0)
-            if(  availableCranesId.length>0)
+            const availableCranesId = allCranes.filter(crane => !usedCranes.includes(crane))
+            console.log(availableCranesId.length > 0)
+            if (availableCranesId.length > 0)
                 return availableCranesId[0]
             else
                 return undefined
-     
+
         }
         else {
             return allCranes[0]
@@ -51,9 +48,11 @@ const createDevice = async (data) => {
     }
 }
 
-const getCranes = async () => {
+const getDevices = () => {
     try {
-        return await deviceList.filter(crane => crane.deleted == false).map(x => {
+        const deviceList = fs.readFileSync("../data/devices.json");
+        const allDevices = JSON.parse(deviceList)
+        return allDevices.filter(device => device.deleted === false).map(x => {
             return {
                 "id": x.id,
                 "crane_id": x.crane_id,
@@ -69,7 +68,7 @@ const getCranes = async () => {
 
 const getDevice = async (device_id) => {
     try {
-        return await deviceList.find(element => element.id == device_id)
+        return deviceList.find(element => element.id === device_id)
     } catch (e) {
         throw new Error(e.message)
     }
@@ -113,7 +112,7 @@ const modifyDevice = async (device_id, newProperties) => {
 
 function _saveDevicesToFile() {
     return new Promise((resolve, reject) => {
-          fs.writeFile('data/devices.json', JSON.stringify(deviceList, null, 2), (err) => {
+        fs.writeFile('data/devices.json', JSON.stringify(deviceList, null, 2), (err) => {
             if (err) return reject(err)
             resolve();
         })
@@ -123,7 +122,7 @@ function _saveDevicesToFile() {
 
 module.exports = {
     createDevice,
-    getCranes,
+    getDevices,
     getDevice,
     setDeleteDevice,
     modifyDevice
