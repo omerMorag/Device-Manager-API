@@ -1,15 +1,19 @@
-
 const fs = require('fs');
 
 const device = require("../model/device")
 
-
+const deviceList = []
 const allocateCraneId = async () => {
     try {
-        const cranesJson = fs.readFileSync("../data/cranes.json")
+        if(fs.existsSync("../data/cranes.json")){
+            console.log('dkfkdfk')
+        }
+        const cranesJson = fs.readFileSync("data/cranes.json")
+        console.log(cranesJson);
         const allCranes = JSON.parse(cranesJson)
-        if (fs.existsSync("data/devices.json")) {
-            const allDevices = fs.readFileSync("data/devices.json")
+        console.log(allCranes);
+        if (fs.existsSync("../data/devices.json")) {
+            const allDevices = fs.readFileSync("../data/devices.json")
             const usedCranes = JSON.parse(allDevices).map(device => { return device.crane_id });
             const availableCranesId = allCranes.filter(crane => !usedCranes.includes(crane))
             console.log(availableCranesId.length > 0)
@@ -37,8 +41,9 @@ const createDevice = async (data) => {
         if (id != undefined && crane_id != undefined && description != undefined && serial_number != undefined && crane_id != undefined) {
             const newDevice = new device(id, crane_id, description, serial_number)
             deviceList.push(newDevice)
-
+            console.log('aloocated cranes')
             await _saveDevicesToFile();
+            console.log('aloocated cranes')
             return true
         }
         else
@@ -50,21 +55,25 @@ const createDevice = async (data) => {
 
 const getDevices = () => {
     try {
-        const deviceList = fs.readFileSync("../data/devices.json");
-        const allDevices = JSON.parse(deviceList)
-        return allDevices.filter(device => device.deleted === false).map(x => {
-            return {
-                "id": x.id,
-                "crane_id": x.crane_id,
-                "serial_number": x.serial_number,
-                "description": x.description
-
-            }
-        })
+        console.log("ddddddd")
+        if (!fs.existsSync("../data/devices.json"))
+            return []
+        else {
+            const deviceList = fs.readFile("data/devices.json");
+            const allDevices = JSON.parse(deviceList)
+            return allDevices.filter(device => device.deleted === false).map(x => {
+                return {
+                    "id": x.id,
+                    "crane_id": x.crane_id,
+                    "serial_number": x.serial_number,
+                    "description": x.description
+                }
+            })
+        }
     } catch (e) {
         throw new Error(e.message)
     }
-}
+} 
 
 const getDevice = async (device_id) => {
     try {

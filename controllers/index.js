@@ -69,9 +69,10 @@ const modifyDevice = (req, res, next) => {
 
 const createDevice = async (req, res, next) => {
     try {
-      const craneList = await deviceServices.getCranes();
-        console.log(craneList);
-        for (const element of craneList) {
+        console.log("ffffffffff")
+      const devices = await deviceServices.getDevices();
+        console.log(devices);
+        for (const element of devices) {
             if (element.id == req.body["id"] || element.serial_number == req.body["serial_number"]) {
                 res.sendStatus(409)
             }
