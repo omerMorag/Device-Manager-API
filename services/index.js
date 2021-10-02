@@ -5,13 +5,11 @@ const device = require("../model/device")
 const deviceList = []
 const allocateCraneId = async () => {
     try {
-        if(fs.existsSync("../data/cranes.json")){
-            console.log('dkfkdfk')
-        }
+
         const cranesJson = fs.readFileSync("data/cranes.json")
-        console.log(cranesJson);
+    
         const allCranes = JSON.parse(cranesJson)
-        console.log(allCranes);
+        
         if (fs.existsSync("../data/devices.json")) {
             const allDevices = fs.readFileSync("../data/devices.json")
             const usedCranes = JSON.parse(allDevices).map(device => { return device.crane_id });
@@ -36,14 +34,11 @@ const allocateCraneId = async () => {
 const createDevice = async (data) => {
     try {
         crane_id = await allocateCraneId()
-        console.log(crane_id)
         const { id, description, serial_number } = data.body;
         if (id != undefined && crane_id != undefined && description != undefined && serial_number != undefined && crane_id != undefined) {
-            const newDevice = new device(id, crane_id, description, serial_number)
+            const newDevice = new device(id, crane_id, serial_number, description)
             deviceList.push(newDevice)
-            console.log('aloocated cranes')
             await _saveDevicesToFile();
-            console.log('aloocated cranes')
             return true
         }
         else
@@ -53,22 +48,27 @@ const createDevice = async (data) => {
     }
 }
 
-const getDevices = () => {
+const getDevices = async () => {
     try {
-        console.log("ddddddd")
-        if (!fs.existsSync("../data/devices.json"))
-            return []
+        isExist = fs.existsSync("data/devices.json")
+        let deviceListFile = undefined
+        console.log(isExist)
+        if (isExist){
+            fileContent = await fs.readFileSync("data/devices.json", 'utf8')
+            deviceListFile = JSON.parse(fileContent);
+            console.log(deviceListFile)
+            return deviceListFile.filter(device => device.deleted === false).map(x => {
+                         return {
+                             "id": x.id,
+                             "crane_id": x.crane_id,
+                             "serial_number": x.serial_number,
+                             "description": x.description
+                         }
+                     })
+            
+        }
         else {
-            const deviceList = fs.readFile("data/devices.json");
-            const allDevices = JSON.parse(deviceList)
-            return allDevices.filter(device => device.deleted === false).map(x => {
-                return {
-                    "id": x.id,
-                    "crane_id": x.crane_id,
-                    "serial_number": x.serial_number,
-                    "description": x.description
-                }
-            })
+            return []
         }
     } catch (e) {
         throw new Error(e.message)
@@ -77,7 +77,8 @@ const getDevices = () => {
 
 const getDevice = async (device_id) => {
     try {
-        return deviceList.find(element => element.id === device_id)
+        allDevices = await getDevices()
+        return allDevices.find(element => element.id === device_id)
     } catch (e) {
         throw new Error(e.message)
     }
@@ -85,7 +86,8 @@ const getDevice = async (device_id) => {
 
 const setDeleteDevice = async (device_id) => {
     try {
-        deviceIndex = deviceList.findIndex(element => element.id == device_id)
+        allDevices = await getDevices()
+        deviceIndex = allDevices.findIndex(element => element.id == device_id)
         if (deviceIndex == -1)
             return false
         else {
@@ -101,13 +103,12 @@ const setDeleteDevice = async (device_id) => {
 
 const modifyDevice = async (device_id, newProperties) => {
     try {
-        deviceIndex = deviceList.findIndex(element => element.id == device_id)
+        allDevices = await getDevices()
+        deviceIndex = allDevices.findIndex(element => element.id == device_id)
         if (deviceIndex != -1) {
-            const { description, serial_number } = newProperties
+            const { description } = newProperties
             if (description != undefined)
                 deviceList[deviceIndex]["description"] = description
-            if (serial_number != undefined)
-                deviceList[deviceIndex]["serial_number"] = serial_number
             await _saveDevicesToFile();
             return true
         }
