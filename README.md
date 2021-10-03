@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-Hello!!
-=======
 # REST API example application
 This application providing a REST API to manage device system.
 
@@ -18,4 +15,3 @@ To run the project, please use a command line the following:
 npm start
 
 It will run the server at port 3000.
->>>>>>> db1503712f5e8377dd98bb3f6702fad52d9cda1e
